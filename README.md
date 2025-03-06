@@ -39,4 +39,7 @@ Time to be creative, and efficient. Do what you think would be the best for your
 Send us the project and answer to those simple questions :
 - What bugs did you find ? How did you solve these and why ?
 - Which feature did you develop and why ?
+indication dans /project:
+combien de jour chaque user peut encore bosser sur le projet s'il est tout seul a bosser
+Combien de jour il reste si tous users qui ont déjà réalisé une activity sur le projet continuent de travailler tous les jours dessus.
 - Do you have any feedback about the code / architecture of the project and what was the difficulty you encountered while doing it ?

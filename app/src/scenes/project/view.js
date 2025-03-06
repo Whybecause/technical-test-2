@@ -100,6 +100,7 @@ const ProjectDetails = ({ project }) => {
 };
 const Budget = ({ project }) => {
   const [activities, setActivities] = useState([10, 29, 18, 12]);
+  const [totalDailyCost, setTotalDailyCost] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -110,7 +111,9 @@ const Budget = ({ project }) => {
         dateQuery = "gte:";
       }
       const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+      const users = await api.get(`/user`);
       const { data } = await api.get(`/activity?projectId=${encodeURIComponent(project._id)}&date=${dateQuery}${date.getTime()}`);
+      setTotalDailyCost(data.reduce((total, activity) => total + users.data.find((user) => user._id === activity.userId)?.costPerDay, 0));
       setActivities(data);
     })();
   }, []);
@@ -119,8 +122,15 @@ const Budget = ({ project }) => {
   const budget_max_monthly = project.budget_max_monthly;
   const width = (100 * total) / budget_max_monthly || 0;
 
+  const daysRemainingWithFullTeam = Math.floor((budget_max_monthly - total) / totalDailyCost);
+
   if (!project.budget_max_monthly) return <div className="mt-2 text-[24px] text-[#212325] font-semibold">{total.toFixed(2)}€</div>;
-  return <ProgressBar percentage={width} max={budget_max_monthly} value={total} />;
+  return (
+    <>
+      <ProgressBar percentage={width} max={budget_max_monthly} value={total} />
+      <div className="text-red-500 text-bold">{daysRemainingWithFullTeam} days remaining with full team</div>
+    </>
+  )
 };
 
 const Activities = ({ project }) => {
@@ -140,10 +150,13 @@ const Activities = ({ project }) => {
       date_to.setDate(0);
       const { data } = await api.get(`/activity?dateFrom=${from.getTime()}&dateTo=${date_to.getTime()}&projectId=${encodeURIComponent(project._id)}`);
       const users = await api.get(`/user`);
-
+      const totalSpent = data.reduce((acc, cur) => acc + cur.value, 0);
+      const remainingBudget = project.budget_max_monthly - totalSpent;
       setActivities(
         data.map((activity) => {
-          return { ...activity, user: (activity.userId = users.data.find((user) => user._id === activity.userId)?.name) };
+          const userCost = users.data.find((user) => user._id === activity.userId)?.costPerDay;
+          const userDaysRemainingSolo = Math.floor(remainingBudget / userCost);
+          return { ...activity, user: (activity.userId = users.data.find((user) => user._id === activity.userId)?.name), userDaysRemainingSolo };
         }),
       );
     })();
@@ -214,8 +227,9 @@ const Activities = ({ project }) => {
                                     alt={`avatar ${e?.user}`}
                                   />
                                   <div>{e.user}</div>
+                                  <div className="text-md italic font-normal">{(e.total / 8).toFixed(2)} days</div>
+                                  <div className="text-md italic font-normal text-red-500">({e.userDaysRemainingSolo} remaining solo)</div>
                                 </div>
-                                <div className="text-md italic font-normal">{(e.total / 8).toFixed(2)} days</div>
                               </div>
                             </th>
                             {e.detail.map((f, j) => {
