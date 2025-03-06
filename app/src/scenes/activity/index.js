@@ -52,8 +52,11 @@ const Activities = ({ date, user, project }) => {
 
   useEffect(() => {
     (async () => {
-      const { data } = await api.get(`/activity?date=${date.getTime()}&user=${user.name}&project=${project}`);
       const projects = await api.get(`/project/list`);
+      const projectName = project;
+      const projectId = projects.data.find((project) => project.name === projectName)?._id;
+
+      const { data } = await api.get(`/activity?date=${date.getTime()}&userId=${user._id}${projectId ? `&projectId=${projectId}` : ""}`);
       setActivities(
         data.map((activity) => {
           return { ...activity, projectName: (activity.projectName = projects.data.find((project) => project._id === activity.projectId)?.name) };
@@ -96,8 +99,9 @@ const Activities = ({ date, user, project }) => {
   async function onDelete(i) {
     if (window.confirm("Are you sure ?")) {
       const activity = activities[i];
+      console.log('activity =', activity);
       await api.remove(`/activity/${activity._id}`);
-      toast.success(`Deleted ${activity.project}`);
+      toast.success(`Deleted ${activity.projectName}`);
     }
   }
 
@@ -174,7 +178,6 @@ const Activities = ({ date, user, project }) => {
                     })}
                   </tr>
                   {activities.map((e, i) => {
-                    console.log('E', e);
                     return (
                       <React.Fragment key={e.projectId}>
                         <tr className="border-t border-b border-r border-[#E5EAEF]" key={`1-${e._id}`} onClick={() => setOpen(i)}>
