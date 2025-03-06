@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ActivitiesIcon, HomeIcon, PeopleIcon, ProjectsIcon } from "../assets/Icons";
 
@@ -23,7 +23,7 @@ const DrawerDesktop = () => {
   );
 };
 
-const Link = ({ Icon, title, to, onClick = () => {} }) => {
+const Link = ({ Icon, title, to, onClick = () => { } }) => {
   return (
     <li>
       <NavLink
@@ -41,15 +41,20 @@ const Link = ({ Icon, title, to, onClick = () => {} }) => {
 };
 
 const Section = ({ children, title }) => {
+  const [isOpen, setIsOpen] = useState(true);
   return (
     <div>
       <h1
         className="flex gap-1 items-center uppercase text-[10px] text-gray-400 tracking-wide font-semibold mt-4 cursor-pointer hover:underline mb-2"
-        onClick={() => setOpen((o) => !o)}>
+        onClick={() => setIsOpen(!isOpen)}>
         {title}
       </h1>
 
-      {children}
+      {isOpen ? (
+        children
+      ) : (
+        null
+      )}
     </div>
   );
 };
